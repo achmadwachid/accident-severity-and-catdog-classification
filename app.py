@@ -163,34 +163,139 @@ if "sev_probs" not in st.session_state:
 # ==========================================
 st.markdown("---")
 st.subheader("1️⃣ Prediksi Keparahan Dampak Kecelakaan")
-st.write("Masukkan kondisi jalan dan cuaca di tempat kejadian perkara (TKP):")
+
+weather_conds = sorted(accident_assets["label_encoders"]["Weather_Condition"].classes_)
+states = sorted(accident_assets["label_encoders"]["State"].classes_)
+cities = sorted(list(accident_assets["frequency_maps"]["City"].keys()))
+counties = sorted(list(accident_assets["frequency_maps"]["County"].keys()))
+
+def get_valid_val(val, options):
+    return val if val in options else options[0]
+
+if "form_weather" not in st.session_state:
+    st.session_state.form_weather = get_valid_val("Clear", weather_conds)
+if "form_state" not in st.session_state:
+    st.session_state.form_state = get_valid_val("NY", states)
+if "form_city" not in st.session_state:
+    st.session_state.form_city = get_valid_val("New York", cities)
+if "form_county" not in st.session_state:
+    st.session_state.form_county = counties[0]
+if "form_lat" not in st.session_state:
+    st.session_state.form_lat = 40.7128
+if "form_lng" not in st.session_state:
+    st.session_state.form_lng = -74.0060
+if "form_visibility" not in st.session_state:
+    st.session_state.form_visibility = 10.0
+if "form_hour" not in st.session_state:
+    st.session_state.form_hour = 12
+if "form_distance" not in st.session_state:
+    st.session_state.form_distance = 0.2
+if "form_signal" not in st.session_state:
+    st.session_state.form_signal = False
+if "form_crossing" not in st.session_state:
+    st.session_state.form_crossing = False
+if "form_stop" not in st.session_state:
+    st.session_state.form_stop = False
+
+def set_preset(sev_level):
+    # Base location dari data A-164 yang valid
+    base_city = get_valid_val("North Olmsted", cities)
+    base_county = get_valid_val("Cuyahoga", counties)
+    base_lat = 41.395805
+    base_lng = -81.935562
+
+    if sev_level == 1:
+        st.session_state.form_weather = get_valid_val("Overcast", weather_conds)
+        st.session_state.form_visibility = 7.0
+        st.session_state.form_hour = 17
+        st.session_state.form_distance = 0.0
+        st.session_state.form_signal = False
+        st.session_state.form_crossing = False
+        st.session_state.form_stop = False
+        st.session_state.form_state = get_valid_val("OH", states)
+        st.session_state.form_city = base_city
+        st.session_state.form_county = base_county
+        st.session_state.form_lat = base_lat
+        st.session_state.form_lng = base_lng
+    elif sev_level == 2:
+        st.session_state.form_weather = get_valid_val("Overcast", weather_conds)
+        st.session_state.form_visibility = 10.0
+        st.session_state.form_hour = 6
+        st.session_state.form_distance = 0.0
+        st.session_state.form_signal = False
+        st.session_state.form_crossing = False
+        st.session_state.form_stop = False
+        st.session_state.form_state = get_valid_val("PA", states)
+        st.session_state.form_city = base_city
+        st.session_state.form_county = base_county
+        st.session_state.form_lat = base_lat
+        st.session_state.form_lng = base_lng
+    elif sev_level == 3:
+        st.session_state.form_weather = get_valid_val("Snow", weather_conds)
+        st.session_state.form_visibility = 1.0
+        st.session_state.form_hour = 20
+        st.session_state.form_distance = 0.0
+        st.session_state.form_signal = False
+        st.session_state.form_crossing = False
+        st.session_state.form_stop = False
+        st.session_state.form_state = get_valid_val("NY", states)
+        st.session_state.form_city = base_city
+        st.session_state.form_county = base_county
+        st.session_state.form_lat = base_lat
+        st.session_state.form_lng = base_lng
+    elif sev_level == 4:
+        st.session_state.form_weather = get_valid_val("Snow", weather_conds)
+        st.session_state.form_visibility = 0.1
+        st.session_state.form_hour = 21
+        st.session_state.form_distance = 0.1
+        st.session_state.form_signal = False
+        st.session_state.form_crossing = False
+        st.session_state.form_stop = False
+        st.session_state.form_state = get_valid_val("PA", states)
+        st.session_state.form_city = base_city
+        st.session_state.form_county = base_county
+        st.session_state.form_lat = base_lat
+        st.session_state.form_lng = base_lng
+
+st.write("Gunakan **Quick Fill** untuk mencoba sampel data secara otomatis:")
+col_btn1, col_btn2, col_btn3, col_btn4 = st.columns(4)
+with col_btn1:
+    if st.button("🟢 Sample Severity 1", use_container_width=True):
+        set_preset(1)
+with col_btn2:
+    if st.button("🟡 Sample Severity 2", use_container_width=True):
+        set_preset(2)
+with col_btn3:
+    if st.button("🟠 Sample Severity 3", use_container_width=True):
+        set_preset(3)
+with col_btn4:
+    if st.button("🔴 Sample Severity 4", use_container_width=True):
+        set_preset(4)
+
+st.write("Atau masukkan kondisi jalan dan cuaca secara manual:")
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    weather_conds = sorted(accident_assets["label_encoders"]["Weather_Condition"].classes_)
-    weather_cond = st.selectbox("Kondisi Cuaca", weather_conds, index=weather_conds.index("Clear") if "Clear" in weather_conds else 0)
-    visibility = st.number_input("Jarak Pandang (Visibility miles)", value=10.0, min_value=0.0)
-    hour = st.slider("Jam Kejadian (Hour)", 0, 23, 12)
+    weather_cond = st.selectbox("Kondisi Cuaca", weather_conds, key="form_weather")
+    visibility = st.number_input("Jarak Pandang (Visibility miles)", min_value=0.0, key="form_visibility")
+    hour = st.slider("Jam Kejadian (Hour)", 0, 23, key="form_hour")
     sunrise_sunset = st.selectbox("Waktu Hari", ["Day", "Night"], index=0)
     
 with col2:
-    states = sorted(accident_assets["label_encoders"]["State"].classes_)
-    state = st.selectbox("Negara Bagian (State)", states, index=states.index("NY") if "NY" in states else 0)
-    cities = sorted(list(accident_assets["frequency_maps"]["City"].keys()))
-    city = st.selectbox("Kota (City)", cities, index=cities.index("New York") if "New York" in cities else 0)
-    counties = sorted(list(accident_assets["frequency_maps"]["County"].keys()))
-    county = st.selectbox("Wilayah (County)", counties, index=0)
+    state = st.selectbox("Negara Bagian (State)", states, key="form_state")
+    city = st.selectbox("Kota (City)", cities, key="form_city")
+    county = st.selectbox("Wilayah (County)", counties, key="form_county")
     timezone = st.selectbox("Timezone", sorted(accident_assets["label_encoders"]["Timezone"].classes_), index=0)
 
 with col3:
-    distance = st.number_input("Jarak Kemacetan Estimasi (Distance miles)", value=0.2, min_value=0.0)
-    start_lat = st.number_input("Latitude", value=40.7128, format="%.6f")
-    start_lng = st.number_input("Longitude", value=-74.0060, format="%.6f")
+    distance = st.number_input("Jarak Kemacetan Estimasi (Distance miles)", min_value=0.0, key="form_distance")
+    start_lat = st.number_input("Latitude", format="%.6f", key="form_lat")
+    start_lng = st.number_input("Longitude", format="%.6f", key="form_lng")
     
     # Fitur jalan penting
-    traffic_signal = st.checkbox("Ada Traffic Light (Rambu Lampu Merah)")
-    crossing = st.checkbox("Ada Penyeberangan Jalan (Crossing)")
-    stop_sign = st.checkbox("Ada Rambu STOP")
+    traffic_signal = st.checkbox("Ada Traffic Light (Rambu Lampu Merah)", key="form_signal")
+    crossing = st.checkbox("Ada Penyeberangan Jalan (Crossing)", key="form_crossing")
+    stop_sign = st.checkbox("Ada Rambu STOP", key="form_stop")
 
 if st.button("🔮 Prediksi Keparahan Kecelakaan", type="primary", use_container_width=True):
     with st.spinner("Menghitung tingkat keparahan..."):
