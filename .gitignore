@@ -1,0 +1,61 @@
+# ==========================
+# Virtual Environment
+# ==========================
+venv/
+.venv/
+env/
+
+# ==========================
+# Python
+# ==========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# ==========================
+# Jupyter Notebook
+# ==========================
+.ipynb_checkpoints/
+
+# ==========================
+# Operating System
+# ==========================
+.DS_Store
+Thumbs.db
+
+# ==========================
+# IDE
+# ==========================
+.vscode/
+.idea/
+
+# ==========================
+# Dataset
+# ==========================
+dataset/
+datasets/
+train/
+test/
+validation/
+*.zip
+*.rar
+*.7z
+
+# ==========================
+# TensorFlow Logs
+# ==========================
+logs/
+events.out.tfevents.*
+
+# ==========================
+# Streamlit Secrets
+# ==========================
+.streamlit/secrets.toml
+
+# ==========================
+# Temporary Files
+# ==========================
+*.log
+*.tmp
+*.bak
